@@ -1,23 +1,28 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import axios from 'axios';
+import { saveAs } from 'file-saver';
+import { Button, Uploader } from 'rsuite';
+import 'rsuite/dist/rsuite.min.css';
 
 function App() {
+  const onUpload = async (fileList: any[]) => {
+    const file = fileList.at(-1);
+    const formData = new FormData();
+    const name = file?.name.split('.docx')[0];
+
+    formData.append("file", file.blobFile);
+    axios.post("http://127.0.0.1:5009/parser", formData, {responseType: 'blob'}).then( async (response: any) => {
+      const blob = new Blob([response.data], {type: 'application/octet-stream'});
+      saveAs(blob, `${name}.leg`);
+    });
+  }
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+       <Uploader action="http://127.0.0.1:5009/parser" autoUpload={false} onChange={onUpload} multiple={false} accept=".docx" fileListVisible={false}>
+        <Button>Konvertuoti docx į LEG</Button>
+       </Uploader>
       </header>
     </div>
   );
